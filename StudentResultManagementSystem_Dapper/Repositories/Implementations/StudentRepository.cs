@@ -19,11 +19,20 @@ namespace StudentResultManagementSystem_Dapper.Repositories.Implementations
         private IDbConnection Connection =>
             new SqlConnection(_config.GetConnectionString("DefaultConnection"));
 
-        public IEnumerable<Student> GetAll()
+        public IEnumerable<Student> SearchStudents(string query)
         {
             using var db = Connection;
-            return db.Query<Student>(
-                "SELECT * FROM Students WHERE IsActive = 1");
+
+            return db.Query<Student>(@"
+        SELECT *
+        FROM Students
+        WHERE IsActive = 1
+        AND (
+            FullName LIKE '%' + @Query + '%'
+            OR RollNumber LIKE '%' + @Query + '%'
+            OR CAST(StudentId AS NVARCHAR) LIKE '%' + @Query + '%'
+        )
+    ", new { Query = query });
         }
 
         public Student? GetById(int id)
@@ -32,6 +41,30 @@ namespace StudentResultManagementSystem_Dapper.Repositories.Implementations
             return db.QueryFirstOrDefault<Student>(
                 "SELECT * FROM Students WHERE StudentId = @Id",
                 new { Id = id });
+        }
+
+        public Student? Search(string query)
+        {
+            using var db = Connection;
+
+            return db.QueryFirstOrDefault<Student>(@"
+        SELECT *
+        FROM Students
+        WHERE 
+            StudentId = TRY_CAST(@Query AS INT)
+            OR FullName LIKE '%' + @Query + '%'
+    ", new { Query = query });
+        }
+
+
+        public Student? GetByUserId(int userId)
+        {
+            using var db = Connection;
+
+            return db.QueryFirstOrDefault<Student>(
+                "SELECT * FROM Students WHERE UserId = @UserId AND IsActive = 1",
+                new { UserId = userId }
+            );
         }
 
         public int Create(Student student)

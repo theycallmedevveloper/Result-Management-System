@@ -40,6 +40,20 @@ namespace StudentResultManagementSystem_Dapper.Controllers
             return student == null ? NotFound() : Ok(student);
         }
 
+        [HttpGet("suggest")]
+        public IActionResult Suggest(string q)
+        {
+            if (HttpContext.Session.GetString("Role") != "Admin")
+                return StatusCode(403);
+
+            if (string.IsNullOrWhiteSpace(q))
+                return Ok(new List<Student>());
+
+            var students = _repo.SearchStudents(q);
+            return Ok(students);
+        }
+
+
         [HttpPost("create")]
         public IActionResult Create(StudentCreateDto dto)
         {

@@ -1,5 +1,6 @@
 ﻿using Dapper;
 using Microsoft.Data.SqlClient;
+using StudentResultManagementSystem_Dapper.DTOs;
 using StudentResultManagementSystem_Dapper.Models;
 using StudentResultManagementSystem_Dapper.Repositories.Interfaces;
 using System.Data;
@@ -63,19 +64,21 @@ namespace StudentResultManagementSystem_Dapper.Repositories.Implementations
                 new { StudentId = studentId });
         }
 
-        public IEnumerable<object> GetAllResults()
+
+        public IEnumerable<AdminResultDto> GetAllResults()
         {
             using var db = Connection;
 
-            return db.Query(@"
-                SELECT 
-                    st.FullName,
-                    sub.SubjectName,
-                    sub.MaxMarks,
-                    sm.MarksObtained
-                FROM StudentMarks sm
-                INNER JOIN Students st ON sm.StudentId = st.StudentId
-                INNER JOIN Subjects sub ON sm.SubjectId = sub.SubjectId");
+            return db.Query<AdminResultDto>(@"
+        SELECT 
+            st.FullName,
+            sub.SubjectName,
+            sm.MarksObtained
+        FROM StudentMarks sm
+        INNER JOIN Students st ON sm.StudentId = st.StudentId
+        INNER JOIN Subjects sub ON sm.SubjectId = sub.SubjectId
+    ");
         }
+
     }
 }

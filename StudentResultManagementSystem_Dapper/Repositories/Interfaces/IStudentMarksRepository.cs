@@ -1,4 +1,5 @@
-﻿using StudentResultManagementSystem_Dapper.Models;
+﻿using StudentResultManagementSystem_Dapper.DTOs;
+using StudentResultManagementSystem_Dapper.Models;
 
 namespace StudentResultManagementSystem_Dapper.Repositories.Interfaces
 {
@@ -9,6 +10,7 @@ namespace StudentResultManagementSystem_Dapper.Repositories.Interfaces
         bool DeleteMarks(int markId);
 
         IEnumerable<StudentResultView> GetResultByStudentId(int studentId);
-        IEnumerable<object> GetAllResults();
+        IEnumerable<AdminResultDto> GetAllResults();
+
     }
 }

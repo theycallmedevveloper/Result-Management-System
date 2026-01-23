@@ -31,3 +31,10 @@ publish/
 
 ## Node (if frontend ever added)
 node_modules/
+
+
+.angular/
+dist/
+
+.vscode/
+coverage/

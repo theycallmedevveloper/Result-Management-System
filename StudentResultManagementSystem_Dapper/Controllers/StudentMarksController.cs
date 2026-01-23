@@ -40,7 +40,8 @@ namespace StudentResultManagementSystem_Dapper.Controllers
         public IActionResult UpdateMarks(StudentMarkUpdateDto dto)
         {
             if (!IsAdmin())
-                return Forbid();
+                return StatusCode(403, "Only admin can update this");
+
 
             return _marksRepo.UpdateMarks(dto.MarkId, dto.MarksObtained)
                 ? Ok("Marks updated")
@@ -52,7 +53,7 @@ namespace StudentResultManagementSystem_Dapper.Controllers
         public IActionResult DeleteMarks(int markId)
         {
             if (!IsAdmin())
-                return Forbid();
+                return StatusCode(403, "Only admin can access this");
 
             return _marksRepo.DeleteMarks(markId)
                 ? Ok("Marks deleted")
@@ -80,7 +81,7 @@ namespace StudentResultManagementSystem_Dapper.Controllers
         public IActionResult AllResults()
         {
             if (!IsAdmin())
-                return Forbid();
+                return StatusCode(403, "Only students can access this");
 
             return Ok(_marksRepo.GetAllResults());
         }
