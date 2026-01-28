@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My Results - Student Portal</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<nav class="navbar navbar-dark bg-dark px-3">
+    <span class="navbar-brand">📚 Student Portal - My Results</span>
+    <button class="btn btn-danger" onclick="logout()">Logout</button>
+</nav>
+
+<div class="container dashboard-container">
+    <div class="dashboard-card">
+        <h4>My Academic Results</h4>
+        <button class="btn btn-primary mb-3" onclick="loadMyResult()">
+             Load My Results
+        </button>
+
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Subject</th>
+                    <th>Marks Obtained</th>
+                    <th>Maximum Marks</th>
+                </tr>
+            </thead>
+            <tbody id="myResult">
+                <tr>
+                    <td colspan="3" class="text-center text-muted">
+                        Click "Load My Results" to view your marks
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="mt-4 p-3 bg-light rounded text-center" id="totalPercentage" style="display: none;">
+            <h5 class="mb-2">Overall Percentage</h5>
+            <h2 class="text-primary" id="percentageValue">0%</h2>
+        </div>
+    </div>
+</div>
+
+<script src="js/student.js"></script>
+</body>
+</html>
