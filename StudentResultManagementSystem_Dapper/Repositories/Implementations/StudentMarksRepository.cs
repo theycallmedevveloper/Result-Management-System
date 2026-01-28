@@ -19,14 +19,31 @@ namespace StudentResultManagementSystem_Dapper.Repositories.Implementations
         private IDbConnection Connection =>
             new SqlConnection(_config.GetConnectionString("DefaultConnection"));
 
-        public void AddMarks(int studentId, int subjectId, int marks)
+        public void AddOrUpdateMarks(int studentId, int subjectId, int marks)
         {
             using var db = Connection;
 
-            db.Execute(@"
-                INSERT INTO StudentMarks (StudentId, SubjectId, MarksObtained)
-                VALUES (@StudentId, @SubjectId, @MarksObtained)",
-                new { StudentId = studentId, SubjectId = subjectId, MarksObtained = marks });
+            var exists = db.ExecuteScalar<int>(@"
+        SELECT COUNT(1)
+        FROM StudentMarks
+        WHERE StudentId = @StudentId AND SubjectId = @SubjectId",
+                new { StudentId = studentId, SubjectId = subjectId });
+
+            if (exists > 0)
+            {
+                db.Execute(@"
+            UPDATE StudentMarks
+            SET MarksObtained = @MarksObtained
+            WHERE StudentId = @StudentId AND SubjectId = @SubjectId",
+                    new { StudentId = studentId, SubjectId = subjectId, MarksObtained = marks });
+            }
+            else
+            {
+                db.Execute(@"
+            INSERT INTO StudentMarks (StudentId, SubjectId, MarksObtained)
+            VALUES (@StudentId, @SubjectId, @MarksObtained)",
+                    new { StudentId = studentId, SubjectId = subjectId, MarksObtained = marks });
+            }
         }
 
         public bool UpdateMarks(int markId, int marks)
@@ -69,15 +86,18 @@ namespace StudentResultManagementSystem_Dapper.Repositories.Implementations
         {
             using var db = Connection;
 
-            return db.Query<AdminResultDto>(@"
-        SELECT 
-            st.FullName,
-            sub.SubjectName,
-            sm.MarksObtained
-        FROM StudentMarks sm
-        INNER JOIN Students st ON sm.StudentId = st.StudentId
-        INNER JOIN Subjects sub ON sm.SubjectId = sub.SubjectId
-    ");
+            var sql = @"
+            SELECT
+                s.StudentId AS StudentId,
+                CONCAT(s.FirstName, ' ', s.LastName) AS StudentName,
+                sub.SubjectName AS SubjectName,
+                sm.MarksObtained AS MarksObtained
+            FROM StudentMarks sm
+            INNER JOIN Students s ON sm.StudentId = s.StudentId
+            INNER JOIN Subjects sub ON sm.SubjectId = sub.SubjectId
+            ";
+
+            return db.Query<AdminResultDto>(sql);
         }
 
     }

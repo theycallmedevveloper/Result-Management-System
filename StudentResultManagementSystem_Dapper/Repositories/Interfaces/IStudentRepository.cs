@@ -6,10 +6,13 @@ namespace StudentResultManagementSystem_Dapper.Repositories.Interfaces
     {
         IEnumerable<Student> SearchStudents(string query);
 
+        IEnumerable<Student> GetAll();
         Student? GetById(int id);
         Student? GetByUserId(int userId);
 
         Student? Search(string query);
+
+        IEnumerable<object> SuggestStudents(string query);
 
         int Create(Student student);
         bool Update(Student student);

@@ -47,9 +47,9 @@ namespace StudentResultManagementSystem_Dapper.Controllers
                 return StatusCode(403);
 
             if (string.IsNullOrWhiteSpace(q))
-                return Ok(new List<Student>());
+                return Ok(new List<object>());
 
-            var students = _repo.SearchStudents(q);
+            var students = _repo.SuggestStudents(q);
             return Ok(students);
         }
 

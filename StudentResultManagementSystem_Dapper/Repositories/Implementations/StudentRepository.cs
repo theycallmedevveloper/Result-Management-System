@@ -35,6 +35,13 @@ namespace StudentResultManagementSystem_Dapper.Repositories.Implementations
     ", new { Query = query });
         }
 
+        public IEnumerable<Student> GetAll()
+        {
+            using var db = Connection;
+            return db.Query<Student>(
+                "SELECT * FROM Students WHERE IsActive = 1");
+        }
+
         public Student? GetById(int id)
         {
             using var db = Connection;
@@ -89,6 +96,28 @@ namespace StudentResultManagementSystem_Dapper.Repositories.Implementations
             WHERE StudentId = @StudentId", student);
 
             return rows > 0;
+        }
+
+        public IEnumerable<object> SuggestStudents(string query)
+        {
+            using var db = Connection;
+
+
+            var sql = @"
+                SELECT
+                StudentId AS studentId,
+                FirstName AS firstName,
+                LastName AS lastName,
+                RollNumber AS rollNumber
+                FROM Students
+                WHERE IsActive = 1
+                AND (
+                FirstName LIKE @q
+                OR LastName LIKE @q
+                OR RollNumber LIKE @q
+                )
+                ";
+            return db.Query(sql, new { q = $"%{query}%" });
         }
 
         public bool Delete(int id)

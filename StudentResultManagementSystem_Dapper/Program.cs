@@ -9,6 +9,7 @@ builder.Services.AddOpenApi();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IStudentRepository, StudentRepository>();
 builder.Services.AddScoped<IStudentMarksRepository, StudentMarksRepository>();
+builder.Services.AddScoped<ISubjectRepository, SubjectRepository>();
 
 builder.Services.AddDistributedMemoryCache();
 

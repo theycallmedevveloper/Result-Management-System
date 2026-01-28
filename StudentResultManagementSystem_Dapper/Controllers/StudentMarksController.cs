@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using StudentResultManagementSystem_Dapper.DTOs;
+using StudentResultManagementSystem_Dapper.Repositories.Implementations;
 using StudentResultManagementSystem_Dapper.Repositories.Interfaces;
 
 namespace StudentResultManagementSystem_Dapper.Controllers
@@ -31,7 +32,7 @@ namespace StudentResultManagementSystem_Dapper.Controllers
             if (!IsAdmin())
                 return Forbid("Only admin can add marks");
 
-            _marksRepo.AddMarks(dto.StudentId, dto.SubjectId, dto.MarksObtained);
+            _marksRepo.AddOrUpdateMarks(dto.StudentId, dto.SubjectId, dto.MarksObtained);
             return Ok("Marks added");
         }
 
@@ -78,12 +79,13 @@ namespace StudentResultManagementSystem_Dapper.Controllers
 
         // ADMIN ONLY
         [HttpGet("all-results")]
-        public IActionResult AllResults()
+        public IActionResult GetAllResults()
         {
             if (!IsAdmin())
-                return StatusCode(403, "Only students can access this");
+                return Forbid("Only admin can view all results");
 
-            return Ok(_marksRepo.GetAllResults());
+            var results = _marksRepo.GetAllResults();
+            return Ok(results);
         }
     }
 }
