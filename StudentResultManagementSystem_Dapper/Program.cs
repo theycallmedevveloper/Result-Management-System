@@ -4,13 +4,33 @@ using StudentResultManagementSystem_Dapper.Repositories.Interfaces;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+
+
 builder.Services.AddOpenApi();
 
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IStudentRepository, StudentRepository>();
 builder.Services.AddScoped<IStudentMarksRepository, StudentMarksRepository>();
+builder.Services.AddScoped<ISubjectRepository, SubjectRepository>();
 
 builder.Services.AddDistributedMemoryCache();
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = "SessionCookie";
+    options.DefaultSignInScheme = "SessionCookie";
+    options.DefaultChallengeScheme = "SessionCookie";
+})
+.AddCookie("SessionCookie", options =>
+{
+    options.Cookie.Name = "StudentAuth";
+    options.LoginPath = "/api/auth/login";
+    options.AccessDeniedPath = "/api/auth/forbidden";
+    options.ExpireTimeSpan = TimeSpan.FromHours(2);
+});
+
+builder.Services.AddAuthorization();
 
 builder.Services.AddSession(options =>
 {
@@ -44,8 +64,9 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseCors("FrontendPolicy");
-app.UseSession();
+app.UseAuthentication();
 app.UseAuthorization();
+app.UseSession();
 
 app.MapControllers();
 app.Run();

@@ -10,6 +10,7 @@ namespace StudentResultManagementSystem_Dapper.Repositories.Implementations
     public class StudentRepository : IStudentRepository
     {
         private readonly IConfiguration _config;
+        private string _connectionString;
 
         public StudentRepository(IConfiguration config)
         {
@@ -35,6 +36,13 @@ namespace StudentResultManagementSystem_Dapper.Repositories.Implementations
     ", new { Query = query });
         }
 
+        public IEnumerable<Student> GetAll()
+        {
+            using var db = Connection;
+            return db.Query<Student>(
+                "SELECT * FROM Students WHERE IsActive = 1");
+        }
+
         public Student? GetById(int id)
         {
             using var db = Connection;
@@ -56,6 +64,13 @@ namespace StudentResultManagementSystem_Dapper.Repositories.Implementations
     ", new { Query = query });
         }
 
+        public Student GetByRollNumber(string rollNumber)
+        {
+            using var connection = new SqlConnection(_connectionString);
+            return connection.QueryFirstOrDefault<Student>(
+                "SELECT * FROM Students WHERE RollNumber = @RollNumber",
+                new { RollNumber = rollNumber });
+        }
 
         public Student? GetByUserId(int userId)
         {
@@ -71,9 +86,17 @@ namespace StudentResultManagementSystem_Dapper.Repositories.Implementations
         {
             using var db = Connection;
             var sql = @"
-            INSERT INTO Students (FirstName, LastName, Email, IsActive)
-            VALUES (@FirstName, @LastName, @Email, 1);
-            SELECT CAST(SCOPE_IDENTITY() as int);";
+        INSERT INTO Students (
+            FirstName, LastName, Email,
+            RollNumber, Class,          -- ← add these
+            UserId, IsActive
+        )
+        VALUES (
+            @FirstName, @LastName, @Email,
+            @RollNumber, @Class,
+            @UserId, 1
+        );
+        SELECT CAST(SCOPE_IDENTITY() AS int);";
 
             return db.QuerySingle<int>(sql, student);
         }
@@ -89,6 +112,28 @@ namespace StudentResultManagementSystem_Dapper.Repositories.Implementations
             WHERE StudentId = @StudentId", student);
 
             return rows > 0;
+        }
+
+        public IEnumerable<object> SuggestStudents(string query)
+        {
+            using var db = Connection;
+
+
+            var sql = @"
+                SELECT
+                StudentId AS studentId,
+                FirstName AS firstName,
+                LastName AS lastName,
+                RollNumber AS rollNumber
+                FROM Students
+                WHERE IsActive = 1
+                AND (
+                FirstName LIKE @q
+                OR LastName LIKE @q
+                OR RollNumber LIKE @q
+                )
+                ";
+            return db.Query(sql, new { q = $"%{query}%" });
         }
 
         public bool Delete(int id)

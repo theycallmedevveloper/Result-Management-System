@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Student Management System - Login</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="header-bar">
+        <div class="container">
+            <h1>📚 Student Management System</h1>
+            <p>Academic Performance & Records Portal</p>
+        </div>
+    </div>
+
+    <div class="login-wrapper">
+        <div class="login-card">
+            <div class="card-header">
+                <h2>System Login</h2>
+                <p>Enter your credentials to access the portal</p>
+            </div>
+
+            <div class="card-body">
+                <form onsubmit="login(event)">
+                    <div class="form-group">
+                        <label for="username">Username</label>
+                        <input 
+                            id="username" 
+                            class="form-control" 
+                            placeholder="Enter username"
+                            autocomplete="username"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input 
+                            id="password" 
+                            type="password" 
+                            class="form-control" 
+                            placeholder="Enter password"
+                            autocomplete="current-password"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="role">
+                            Login As
+                            <span class="role-badge">Required</span>
+                        </label>
+                        <select id="role" class="form-control" required>
+                            <option value="">-- Select Role --</option>
+                            <option value="Admin">Admin (Faculty/Staff)</option>
+                            <option value="Student">Student</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn-login">Login to Portal</button>
+                    
+                    <p id="msg" class="error-msg"></p>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>&copy; 2025 Student Management System. All rights reserved.</p>
+    </div>
+
+    <script src="js/auth.js"></script>
+</body>
+</html>

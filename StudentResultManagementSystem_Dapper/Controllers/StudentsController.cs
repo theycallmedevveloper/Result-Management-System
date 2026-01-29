@@ -1,7 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Dapper;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
 using StudentResultManagementSystem_Dapper.DTOs;
 using StudentResultManagementSystem_Dapper.Models;
 using StudentResultManagementSystem_Dapper.Repositories.Interfaces;
+using Microsoft.Extensions.Configuration;   // ← add this
 
 namespace StudentResultManagementSystem_Dapper.Controllers
 {
@@ -10,15 +13,21 @@ namespace StudentResultManagementSystem_Dapper.Controllers
     public class StudentsController : ControllerBase
     {
         private readonly IStudentRepository _repo;
+        private readonly IConfiguration _configuration;   // ← add this field
 
-        public StudentsController(IStudentRepository repo)
+        public StudentsController(
+            IStudentRepository repo,
+            IConfiguration configuration)   // ← inject IConfiguration
         {
             _repo = repo;
+            _configuration = configuration;
         }
 
         private bool IsAdmin()
         {
-            return HttpContext.Session.GetString("Role") == "Admin";
+            var role = HttpContext.Session.GetString("Role");
+            Console.WriteLine($"Current user role: {role}"); // Debug
+            return role == "Admin";
         }
 
         [HttpGet("get-all")]
@@ -47,30 +56,106 @@ namespace StudentResultManagementSystem_Dapper.Controllers
                 return StatusCode(403);
 
             if (string.IsNullOrWhiteSpace(q))
-                return Ok(new List<Student>());
+                return Ok(new List<object>());
 
-            var students = _repo.SearchStudents(q);
+            var students = _repo.SuggestStudents(q);
             return Ok(students);
         }
 
-
         [HttpPost("create")]
-        public IActionResult Create(StudentCreateDto dto)
+        public async Task<IActionResult> Create([FromBody] StudentCreateDto dto)
         {
             if (!IsAdmin())
                 return Forbid("Only admin can create students");
 
-            var student = new Student
+            if (string.IsNullOrWhiteSpace(dto.FirstName) ||
+                string.IsNullOrWhiteSpace(dto.LastName) ||
+                string.IsNullOrWhiteSpace(dto.Class) ||
+                string.IsNullOrWhiteSpace(dto.RollNumber) ||  // This ensures RollNumber is not empty
+                string.IsNullOrWhiteSpace(dto.Email) ||
+                string.IsNullOrWhiteSpace(dto.Password))
             {
-                FirstName = dto.FirstName,
-                LastName = dto.LastName,
-                Email = dto.Email
-            };
+                return BadRequest("All fields are required.");
+            }
 
-            var id = _repo.Create(student);
-            return Ok(new { StudentId = id });
+            // IMPORTANT: Check for NULL or empty RollNumber in code
+            if (string.IsNullOrWhiteSpace(dto.RollNumber))
+            {
+                return BadRequest("RollNumber cannot be empty.");
+            }
+
+            var username = $"{dto.FirstName.ToLower()}.{dto.RollNumber}".Replace(" ", "");
+
+            using var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
+
+            // Create User first
+            var userSql = @"
+        INSERT INTO Users (Username, Password, Role, IsActive)
+        VALUES (@Username, @Password, 'Student', 1);
+        SELECT CAST(SCOPE_IDENTITY() AS int);";
+
+            int userId;
+            try
+            {
+                userId = await connection.ExecuteScalarAsync<int>(
+                    userSql,
+                    new
+                    {
+                        Username = username,
+                        Password = dto.Password
+                    });
+            }
+            catch (SqlException ex) when (ex.Number is 2627 or 2601)
+            {
+                return Conflict("Username already exists.");
+            }
+
+            // Create Student - Use parameterized query to avoid NULL issue
+            var studentSql = @"
+        INSERT INTO Students 
+        (FirstName, LastName, FullName, Email, UserId, Class, RollNumber, IsActive)
+        VALUES 
+        (@FirstName, @LastName, @FullName, @Email, @UserId, @Class, @RollNumber, 1);
+        SELECT CAST(SCOPE_IDENTITY() AS int);";
+
+            try
+            {
+                var studentId = await connection.ExecuteScalarAsync<int>(studentSql, new
+                {
+                    FirstName = dto.FirstName,
+                    LastName = dto.LastName,
+                    FullName = $"{dto.FirstName} {dto.LastName}",
+                    Email = dto.Email,
+                    UserId = userId,
+                    Class = dto.Class,
+                    RollNumber = dto.RollNumber  // This should NOT be NULL
+                });
+
+                return Ok(new
+                {
+                    studentId,
+                    username,
+                    message = "Student created successfully"
+                });
+            }
+            catch (SqlException ex)
+            {
+                // Log the full error
+                Console.WriteLine($"SQL Error: {ex.Message}");
+                Console.WriteLine($"Error Number: {ex.Number}");
+
+                if (ex.Number == 2627 || ex.Number == 2601)  // Unique constraint violation
+                {
+                    if (ex.Message.Contains("RollNumber"))
+                    {
+                        return Conflict($"Roll number '{dto.RollNumber}' already exists.");
+                    }
+                    return Conflict("Duplicate entry. Please check the data.");
+                }
+
+                return StatusCode(500, $"Database error: {ex.Message}");
+            }
         }
-
         [HttpPost("update")]
         public IActionResult Update(StudentUpdateDto dto)
         {
