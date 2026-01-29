@@ -110,8 +110,8 @@ Result-Management-System1/
 
 #### 1. Clone the Repository
 ```bash
-git clone <your-repository-url>
-cd Result-Management-System1
+git clone https://github.com/theycallmedevveloper/Result-Management-System.git
+cd Result-Management-System
 ```
 
 #### 2. Database Setup
@@ -132,7 +132,7 @@ dotnet restore
 dotnet run
 ```
 
-The API will run on `https://localhost:7240`
+The API will run on `https://localhost:XXXX`
 
 #### 4. Frontend Setup
 1. Open the `StudentResultSystem_UI` folder
@@ -140,7 +140,7 @@ The API will run on `https://localhost:7240`
    - **VS Code Live Server** extension
    - Python: `python -m http.server 5500`
    - Node.js: `npx serve .`
-3. Access the application at `http://localhost:5500`
+3. Access the application at `http://localhost:XXXX`
 
 ### Default Credentials (for testing)
 
@@ -249,7 +249,7 @@ INSERT INTO Subjects (SubjectName, MaxMarks) VALUES
    - Ensure `TrustServerCertificate=true` for local development
 
 4. **API Not Responding**
-   - Check if backend is running (`https://localhost:7240`)
+   - Check if backend is running (`https://localhost:XXXX`)
    - Verify API endpoints match frontend calls
 
 ## 📝 License
@@ -266,7 +266,7 @@ This project is for educational purposes. Feel free to modify and use as needed.
 
 ## 👨‍💻 Author
 
-**Dev Jarwala**
+**Dev**
 - Student Management System - Academic Project
 - Built with ASP.NET Core and Dapper
 
