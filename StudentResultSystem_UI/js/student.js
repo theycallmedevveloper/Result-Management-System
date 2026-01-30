@@ -1,3 +1,4 @@
+// Load student's own results
 async function loadMyResult() {
     try {
         const res = await fetch("https://localhost:7240/api/marks/my-result", {
@@ -28,6 +29,7 @@ async function loadMyResult() {
         let totalMarks = 0;
         let isPassed = true;
 
+        // Calculate totals and check pass/fail status
         data.forEach(r => {
             totalMarks += r.marksObtained;
 
@@ -46,7 +48,7 @@ async function loadMyResult() {
 
         const percentage = ((totalMarks / (data.length * 100)) * 100).toFixed(2);
 
-        // Update summary
+        // Update summary section
         document.getElementById("totalMarks").textContent = totalMarks;
         document.getElementById("percentage").textContent = percentage + "%";
 
@@ -59,6 +61,7 @@ async function loadMyResult() {
     }
 }
 
+// Open profile modal with student details
 async function openProfile() {
     try {
         const studentId = localStorage.getItem("studentId");
@@ -81,9 +84,9 @@ async function openProfile() {
 
         const data = await res.json();
 
+        // Populate profile modal with data
         document.getElementById("profilePhoto").src =
             "https://localhost:7240" + data.profilePhotoUrl;
-
 
         document.getElementById("pName").textContent =
             `${data.firstName} ${data.lastName}`;
@@ -91,6 +94,7 @@ async function openProfile() {
         document.getElementById("pClass").textContent = data.class;
         document.getElementById("pEmail").textContent = data.email;
 
+        // Show the modal
         const modal = new bootstrap.Modal(
             document.getElementById("profileModal")
         );
@@ -102,6 +106,7 @@ async function openProfile() {
     }
 }
 
+// Upload new profile photo
 async function uploadProfilePhoto() {
     const fileInput = document.getElementById("photoInput");
     const file = fileInput.files[0];
@@ -128,9 +133,9 @@ async function uploadProfilePhoto() {
 
         const data = await res.json();
 
-       document.getElementById("profilePhoto").src =
-    "https://localhost:7240" + data.profilePhotoUrl + "?t=" + Date.now();
-
+        // Update photo with cache busting
+        document.getElementById("profilePhoto").src =
+            "https://localhost:7240" + data.profilePhotoUrl + "?t=" + Date.now();
 
         alert("Profile photo updated successfully");
 
@@ -140,7 +145,7 @@ async function uploadProfilePhoto() {
     }
 }
 
-
+// Logout student user
 async function logout() {
     try {
         await fetch("https://localhost:7240/api/auth/logout", {
@@ -152,5 +157,3 @@ async function logout() {
         window.location.href = "index.html";
     }
 }
-
-

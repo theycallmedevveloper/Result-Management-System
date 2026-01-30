@@ -1,8 +1,9 @@
 let selectedStudentId = null;
 
+// Add marks for a single subject
 async function addMarks() {
     if (!selectedStudentId) {
-        alert("⚠️ Please select a student from suggestions");
+        alert("Please select a student from suggestions");
         return;
     }
 
@@ -10,7 +11,7 @@ async function addMarks() {
     const marks = document.getElementById("marks").value;
 
     if (!subjectId || !marks) {
-        alert("⚠️ Please fill in all fields");
+        alert("Please fill in all fields");
         return;
     }
 
@@ -27,13 +28,13 @@ async function addMarks() {
         });
 
         if (!res.ok) {
-            alert("❌ Failed to add marks");
+            alert("Failed to add marks");
             return;
         }
 
-        alert("✅ Marks added successfully");
+        alert("Marks added successfully");
 
-        // Clear form
+        // Clear form after successful submission
         document.getElementById("studentSearch").value = "";
         document.getElementById("subjectSelect").value = "";
         document.getElementById("marks").value = "";
@@ -41,10 +42,11 @@ async function addMarks() {
         selectedStudentId = null;
 
     } catch (error) {
-        alert("❌ Error: " + error.message);
+        alert(" Error: " + error.message);
     }
 }
 
+// Fetch student suggestions based on search query
 async function suggestStudents() {
     const q = document.getElementById("studentSearch").value;
 
@@ -76,6 +78,7 @@ async function suggestStudents() {
             return;
         }
 
+        // Create clickable list items for each student
         students.forEach(s => {
             const li = document.createElement("li");
             li.className = "list-group-item list-group-item-action";
@@ -88,13 +91,14 @@ async function suggestStudents() {
     }
 }
 
+// Handle student selection from suggestions
 function selectStudent(student) {
     selectedStudentId = student.studentId;
     document.getElementById("studentSearch").value =
         `${student.firstName} ${student.lastName}`;
 
     const selectedDiv = document.getElementById("selectedStudent");
-    selectedDiv.innerText = `✓ Selected: ${student.firstName} ${student.lastName}`;
+    selectedDiv.innerText = `Selected: ${student.firstName} ${student.lastName}`;
     selectedDiv.style.display = "block";
 
     document.getElementById("suggestions").innerHTML = "";
@@ -102,6 +106,7 @@ function selectStudent(student) {
     loadSubjects(firstSelect);
 }
 
+// Disable already selected subjects across all rows
 function handleSubjectChange() {
     const selects = document.querySelectorAll(".subjectSelect");
     const selectedValues = Array.from(selects)
@@ -123,6 +128,7 @@ function handleSubjectChange() {
     });
 }
 
+// Load all available subjects into dropdown
 async function loadSubjects(selectElement) {
     const res = await fetch("https://localhost:7240/api/subjects", {
         credentials: "include"
@@ -142,6 +148,7 @@ async function loadSubjects(selectElement) {
     handleSubjectChange();
 }
 
+// Remove a subject-marks row
 function removeSubjectRow(button) {
     const row = button.closest(".mark-row");
     row.remove();
@@ -150,6 +157,7 @@ function removeSubjectRow(button) {
     handleSubjectChange();
 }
 
+// Load all student results for admin view
 async function loadResults() {
     try {
         const res = await fetch("https://localhost:7240/api/marks/all-results", {
@@ -176,7 +184,7 @@ async function loadResults() {
             return;
         }
 
-        // Group results by student
+        // Group results by student for better display
         const studentMap = {};
         data.forEach(r => {
             if (!studentMap[r.studentName]) {
@@ -188,7 +196,7 @@ async function loadResults() {
             });
         });
 
-        // Render grouped results
+        // Render grouped results with rowspan for student names
         Object.keys(studentMap).forEach(studentName => {
             const subjects = studentMap[studentName];
 
@@ -216,6 +224,7 @@ async function loadResults() {
     }
 }
 
+// Logout admin user
 async function logout() {
     try {
         await fetch("https://localhost:7240/api/auth/logout", {
@@ -229,6 +238,7 @@ async function logout() {
     }
 }
 
+// Add new subject-marks input row
 function addMoreSubjectRow() {
     const container = document.getElementById("marksContainer");
 
@@ -248,27 +258,28 @@ function addMoreSubjectRow() {
         </div>
         <div class="col-md-1 d-flex align-items-center justify-content-center">
             <button class="btn btn-danger btn-sm" onclick="removeSubjectRow(this)" style="width: 40px; height: 38px; padding: 2px">
-                ❌  
+                Remove  
             </button>
         </div>
     `;
 
     container.appendChild(row);
 
-    //  Load subjects ONLY for the new row
+    // Load subjects ONLY for the new row
     const newSelect = row.querySelector(".subjectSelect");
     loadSubjects(newSelect);
 }
 
+// Create a new student account
 async function createStudent() {
     const msgEl = document.getElementById("createMsg");
-    
-    const firstName   = document.getElementById("firstName").value.trim();
-    const lastName    = document.getElementById("lastName").value.trim();
-    const classVal    = document.getElementById("class")?.value?.trim() || "";
-    const rollNumber  = document.getElementById("rollNumber").value.trim();
-    const email       = document.getElementById("email").value.trim();
-    const password    = document.getElementById("password").value.trim();
+
+    const firstName = document.getElementById("firstName").value.trim();
+    const lastName = document.getElementById("lastName").value.trim();
+    const classVal = document.getElementById("class")?.value?.trim() || "";
+    const rollNumber = document.getElementById("rollNumber").value.trim();
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value.trim();
 
     if (!firstName || !lastName || !classVal || !rollNumber || !email || !password) {
         msgEl.className = "alert alert-danger mt-3";
@@ -287,14 +298,10 @@ async function createStudent() {
         password: password
     };
 
-    // Debug: Log what's being sent
-    console.log("Sending payload:", payload);
-    console.log("JSON string:", JSON.stringify(payload));
-
     try {
         const res = await fetch("https://localhost:7240/api/students/create", {
             method: "POST",
-            headers: { 
+            headers: {
                 "Content-Type": "application/json",
                 "Accept": "application/json"
             },
@@ -302,10 +309,10 @@ async function createStudent() {
             body: JSON.stringify(payload)
         });
 
-        // First, check if it's a JSON response
+        // Check response content type
         const contentType = res.headers.get("content-type");
         let responseData;
-        
+
         if (contentType && contentType.includes("application/json")) {
             responseData = await res.json();
         } else {
@@ -315,9 +322,7 @@ async function createStudent() {
         }
 
         if (!res.ok) {
-            // Try to get error details from response
-            console.error("API Error Response:", responseData);
-            
+            // Extract validation errors if available
             if (responseData.errors) {
                 const errorMsgs = Object.values(responseData.errors)
                     .flat()
@@ -327,7 +332,7 @@ async function createStudent() {
             throw new Error(responseData.message || responseData.title || "Failed to create student");
         }
 
-        // Success
+        // Success - show confirmation
         msgEl.className = "alert alert-success mt-3";
         msgEl.textContent = `Student created successfully! ID: ${responseData.studentId} | Username: ${responseData.username}`;
         msgEl.style.display = "block";
@@ -357,9 +362,10 @@ async function createStudent() {
     }
 }
 
+// Add marks for multiple subjects at once
 async function addMultipleMarks() {
     if (!selectedStudentId) {
-        alert("⚠️ Please select a student");
+        alert("Please select a student");
         return;
     }
 
@@ -376,11 +382,12 @@ async function addMultipleMarks() {
     });
 
     if (payloads.length === 0) {
-        alert("⚠️ Please enter at least one subject & marks");
+        alert("Please enter at least one subject & marks");
         return;
     }
 
     try {
+        // Add marks for each subject sequentially
         for (const p of payloads) {
             const res = await fetch("https://localhost:7240/api/marks/add", {
                 method: "POST",
@@ -398,7 +405,7 @@ async function addMultipleMarks() {
             }
         }
 
-        alert("✅ All marks added successfully");
+        alert("All marks added successfully");
 
         // Reset UI
         document.getElementById("marksContainer").innerHTML = "";
@@ -408,6 +415,6 @@ async function addMultipleMarks() {
         selectedStudentId = null;
 
     } catch (err) {
-        alert("❌ " + err.message);
+        alert("X" + err.message);
     }
 }
