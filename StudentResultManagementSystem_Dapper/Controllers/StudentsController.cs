@@ -1,10 +1,12 @@
 ﻿using Dapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Configuration;   
 using StudentResultManagementSystem_Dapper.DTOs;
 using StudentResultManagementSystem_Dapper.Models;
+using StudentResultManagementSystem_Dapper.Repositories.Implementations;
 using StudentResultManagementSystem_Dapper.Repositories.Interfaces;
-using Microsoft.Extensions.Configuration;   // ← add this
 
 namespace StudentResultManagementSystem_Dapper.Controllers
 {
@@ -13,11 +15,10 @@ namespace StudentResultManagementSystem_Dapper.Controllers
     public class StudentsController : ControllerBase
     {
         private readonly IStudentRepository _repo;
-        private readonly IConfiguration _configuration;   // ← add this field
-
+        private readonly IConfiguration _configuration;   
         public StudentsController(
             IStudentRepository repo,
-            IConfiguration configuration)   // ← inject IConfiguration
+            IConfiguration configuration)   
         {
             _repo = repo;
             _configuration = configuration;
@@ -71,7 +72,7 @@ namespace StudentResultManagementSystem_Dapper.Controllers
             if (string.IsNullOrWhiteSpace(dto.FirstName) ||
                 string.IsNullOrWhiteSpace(dto.LastName) ||
                 string.IsNullOrWhiteSpace(dto.Class) ||
-                string.IsNullOrWhiteSpace(dto.RollNumber) ||  // This ensures RollNumber is not empty
+                string.IsNullOrWhiteSpace(dto.RollNumber) ||  
                 string.IsNullOrWhiteSpace(dto.Email) ||
                 string.IsNullOrWhiteSpace(dto.Password))
             {
@@ -128,7 +129,7 @@ namespace StudentResultManagementSystem_Dapper.Controllers
                     Email = dto.Email,
                     UserId = userId,
                     Class = dto.Class,
-                    RollNumber = dto.RollNumber  // This should NOT be NULL
+                    RollNumber = dto.RollNumber  
                 });
 
                 return Ok(new
@@ -144,7 +145,7 @@ namespace StudentResultManagementSystem_Dapper.Controllers
                 Console.WriteLine($"SQL Error: {ex.Message}");
                 Console.WriteLine($"Error Number: {ex.Number}");
 
-                if (ex.Number == 2627 || ex.Number == 2601)  // Unique constraint violation
+                if (ex.Number == 2627 || ex.Number == 2601)  
                 {
                     if (ex.Message.Contains("RollNumber"))
                     {
@@ -156,6 +157,7 @@ namespace StudentResultManagementSystem_Dapper.Controllers
                 return StatusCode(500, $"Database error: {ex.Message}");
             }
         }
+
         [HttpPost("update")]
         public IActionResult Update(StudentUpdateDto dto)
         {
@@ -172,6 +174,63 @@ namespace StudentResultManagementSystem_Dapper.Controllers
 
             return success ? Ok() : NotFound();
         }
+
+        [HttpPost("upload-profile-photo")]
+        public async Task<IActionResult> UploadProfilePhoto(IFormFile photo)
+        {
+            var userId = HttpContext.Session.GetInt32("UserId");
+            if (userId == null)
+                return Unauthorized();
+
+            var student = _repo.GetByUserId(userId.Value);
+            if (student == null)
+                return Unauthorized();
+
+            if (photo == null || photo.Length == 0)
+                return BadRequest("No file uploaded");
+
+            var uploadsPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
+            if (!Directory.Exists(uploadsPath))
+                Directory.CreateDirectory(uploadsPath);
+
+            var fileName = $"student_{student.StudentId}{Path.GetExtension(photo.FileName)}";
+            var filePath = Path.Combine(uploadsPath, fileName);
+
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await photo.CopyToAsync(stream);
+            }
+
+            var photoUrl = $"/uploads/{fileName}";
+
+            _repo.UpdateProfilePhoto(student.StudentId, photoUrl);
+
+            return Ok(new { profilePhotoUrl = photoUrl });
+        }
+
+
+
+        [Authorize(Roles = "Student")]
+        [HttpGet("{id}/result-status")]
+        public async Task<IActionResult> GetResultStatus(int id)
+        {
+            var result = await _repo.GetStudentResultStatusAsync(id);
+            if (result == null)
+                return NotFound("Result not found");
+
+            return Ok(result);
+        }
+
+        [HttpGet("{id}/profile")]
+        public async Task<IActionResult> GetProfile(int id)
+        {
+            var profile = await _repo.GetStudentProfileAsync(id);
+            if (profile == null)
+                return NotFound();
+
+            return Ok(profile);
+        }
+
 
         [HttpGet("delete/{id}")]
         public IActionResult Delete(int id)

@@ -11,9 +11,7 @@ async function loadMyResult() {
 
         const data = await res.json();
         const tbody = document.getElementById("myResult");
-        const totalPercentageDiv = document.getElementById("totalPercentage");
-        const percentageValue = document.getElementById("percentageValue");
-        
+
         tbody.innerHTML = "";
 
         if (data.length === 0) {
@@ -24,34 +22,124 @@ async function loadMyResult() {
                     </td>
                 </tr>
             `;
-            totalPercentageDiv.style.display = "none";
             return;
         }
 
-        let totalMarksObtained = 0;
-        let totalMaxMarks = 0;
+        let totalMarks = 0;
+        let isPassed = true;
 
         data.forEach(r => {
-            totalMarksObtained += r.marksObtained;
-            totalMaxMarks += r.maxMarks;
-            
+            totalMarks += r.marksObtained;
+
+            if (r.marksObtained < 35) {
+                isPassed = false;
+            }
+
             tbody.innerHTML += `
                 <tr>
-                    <td>${r.subjectName}</td>   
+                    <td>${r.subjectName}</td>
                     <td>${r.marksObtained}</td>
                     <td>${r.maxMarks}</td>
                 </tr>
             `;
         });
 
-        const overallPercentage = ((totalMarksObtained / totalMaxMarks) * 100).toFixed(2);
-        percentageValue.textContent = `${overallPercentage}%`;
-        totalPercentageDiv.style.display = "block";
-        
+        const percentage = ((totalMarks / (data.length * 100)) * 100).toFixed(2);
+
+        // Update summary
+        document.getElementById("totalMarks").textContent = totalMarks;
+        document.getElementById("percentage").textContent = percentage + "%";
+
+        const statusEl = document.getElementById("resultStatus");
+        statusEl.textContent = isPassed ? "PASSED" : "FAILED";
+        statusEl.style.color = isPassed ? "green" : "red";
+
     } catch (error) {
         alert("Error loading results: " + error.message);
     }
 }
+
+async function openProfile() {
+    try {
+        const studentId = localStorage.getItem("studentId");
+
+        if (!studentId) {
+            alert("Student ID not found. Please login again.");
+            return;
+        }
+
+        const res = await fetch(
+            `https://localhost:7240/api/students/${studentId}/profile`,
+            {
+                credentials: "include"
+            }
+        );
+
+        if (!res.ok) {
+            throw new Error("Profile API failed");
+        }
+
+        const data = await res.json();
+
+        document.getElementById("profilePhoto").src =
+            "https://localhost:7240" + data.profilePhotoUrl;
+
+
+        document.getElementById("pName").textContent =
+            `${data.firstName} ${data.lastName}`;
+        document.getElementById("pRoll").textContent = data.rollNumber;
+        document.getElementById("pClass").textContent = data.class;
+        document.getElementById("pEmail").textContent = data.email;
+
+        const modal = new bootstrap.Modal(
+            document.getElementById("profileModal")
+        );
+        modal.show();
+
+    } catch (err) {
+        console.error(err);
+        alert("Unable to load profile details");
+    }
+}
+
+async function uploadProfilePhoto() {
+    const fileInput = document.getElementById("photoInput");
+    const file = fileInput.files[0];
+
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("photo", file);
+
+    try {
+        const res = await fetch(
+            "https://localhost:7240/api/students/upload-profile-photo",
+            {
+                method: "POST",
+                credentials: "include",
+                body: formData
+            }
+        );
+
+        if (!res.ok) {
+            alert("Failed to upload photo");
+            return;
+        }
+
+        const data = await res.json();
+
+       document.getElementById("profilePhoto").src =
+    "https://localhost:7240" + data.profilePhotoUrl + "?t=" + Date.now();
+
+
+        alert("Profile photo updated successfully");
+
+    } catch (err) {
+        alert("Upload error");
+        console.error(err);
+    }
+}
+
 
 async function logout() {
     try {
@@ -60,8 +148,9 @@ async function logout() {
             credentials: "include"
         });
         window.location.href = "index.html";
-    } catch (error) {
-        console.error("Logout error:", error);
+    } catch {
         window.location.href = "index.html";
     }
 }
+
+

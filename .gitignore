@@ -32,6 +32,8 @@ publish/
 ## Node (if frontend ever added)
 node_modules/
 
+# Ignore uploaded profile images
+wwwroot/uploads/*
 
 .angular/
 dist/

@@ -9,16 +9,29 @@ namespace StudentResultManagementSystem_Dapper.Repositories.Implementations
 {
     public class UserRepository : IUserRepository
     {
-        private readonly string _connectionString;
+        private readonly IConfiguration _config;
 
         public UserRepository(IConfiguration configuration)
         {
-            _connectionString = configuration.GetConnectionString("DefaultConnection")!;
+            _config = configuration;
+        }
+
+        private IDbConnection Connection =>
+            new SqlConnection(_config.GetConnectionString("DefaultConnection"));
+
+        public User GetByUserId(int userId)
+        {
+            using var db = Connection;
+
+            return db.QueryFirstOrDefault<User>(
+                "SELECT * FROM Users WHERE UserId = @UserId",
+                new { UserId = userId }
+            );
         }
 
         public async Task<User?> Login(string username, string password)
         {
-            using var connection = new SqlConnection(_connectionString);
+            using var db = Connection;
 
             var sql = @"
                 SELECT UserId, Username, Role
@@ -27,7 +40,7 @@ namespace StudentResultManagementSystem_Dapper.Repositories.Implementations
                   AND Password = @Password
                   AND IsActive = 1";
 
-            return await connection.QueryFirstOrDefaultAsync<User>(
+            return await db.QueryFirstOrDefaultAsync<User>(
                 sql,
                 new { Username = username, Password = password }
             );

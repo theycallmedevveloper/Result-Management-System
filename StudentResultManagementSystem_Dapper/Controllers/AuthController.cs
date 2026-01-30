@@ -1,6 +1,8 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using StudentResultManagementSystem_Dapper.DTOs;
-using StudentResultManagementSystem_Dapper.Repositories.Interfaces; 
+using StudentResultManagementSystem_Dapper.Repositories.Implementations;
+using StudentResultManagementSystem_Dapper.Repositories.Interfaces;
 
 namespace StudentResultManagementSystem_Dapper.Controllers
 {
@@ -9,27 +11,48 @@ namespace StudentResultManagementSystem_Dapper.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IUserRepository _userRepository;
-        public AuthController(IUserRepository userRepository)
+        private readonly IStudentRepository _studentRepository;
+
+        public AuthController(
+             IUserRepository userRepository,
+             IStudentRepository studentRepository)
         {
             _userRepository = userRepository;
+            _studentRepository = studentRepository;
         }
 
         [HttpGet("profile")]
-
         public IActionResult Profile()
         {
             var userId = HttpContext.Session.GetInt32("UserId");
+            var role = HttpContext.Session.GetString("Role");
 
-            if (userId == null)
-                return Unauthorized("Please Log in First");
+            if (userId == null || role == null)
+                return Unauthorized();
+
+            var user = _userRepository.GetByUserId(userId.Value);
+            if (user == null)
+                return Unauthorized();
+
+            int? studentId = null;
+
+            if (role == "Student")
+            {
+                var student = _studentRepository.GetByUserId(userId.Value);
+                if (student != null)
+                    studentId = student.StudentId;
+            }
 
             return Ok(new
             {
-                UserId = userId,
-                Username = HttpContext.Session.GetString("Username"),
-                Role = HttpContext.Session.GetString("Role")
+                userId = user.UserId,
+                username = user.Username,
+                role = role,
+                studentId = studentId
             });
         }
+
+
 
         [HttpPost("login")]
 

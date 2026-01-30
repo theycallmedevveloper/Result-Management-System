@@ -1,6 +1,6 @@
 async function login(event) {
     event.preventDefault();
-    
+
     const username = document.getElementById("username").value;
     const password = document.getElementById("password").value;
     const selectedRole = document.getElementById("role").value;
@@ -46,10 +46,16 @@ async function login(event) {
         }
 
         if (profile.role === "Admin") {
+            localStorage.setItem("role", "Admin");
             window.location.href = "admin.html";
         } else {
+
+            localStorage.setItem("role", "Student");
+            localStorage.setItem("studentId", profile.studentId);
+
             window.location.href = "student.html";
         }
+
     } catch (error) {
         msgEl.innerText = "❌ Connection error. Please try again.";
         msgEl.classList.add("show");

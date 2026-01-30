@@ -62,11 +62,15 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
+
 app.UseHttpsRedirection();
+
 app.UseCors("FrontendPolicy");
+app.UseStaticFiles();
+
+app.UseSession();
 app.UseAuthentication();
 app.UseAuthorization();
-app.UseSession();
 
 app.MapControllers();
 app.Run();
