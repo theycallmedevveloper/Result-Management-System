@@ -5,10 +5,20 @@ A full-stack Student Management System built with **ASP.NET Core Web API** (Dapp
 ## ✨ Features
 
 ### 👨‍🎓 Student Portal
-- View personal academic results with subject-wise marks
-- Calculate overall percentage automatically
-- Secure login with session-based authentication
+- View subject-wise academic results
+- Automatic total marks & percentage calculation
+- **Overall result status (Pass / Fail)**
+- **View-only student profile modal**
+- **Profile photo upload**
+- Secure session-based authentication
 - Clean, responsive interface
+
+### 👤 Student Profile
+- View personal details (name, roll number, class, email)
+- Upload profile photo
+- Profile details are **read-only** for students
+- Profile image stored securely on the server
+
 
 ### 👨‍🏫 Admin Portal
 - **Student Management**: Create, update, and delete student records
@@ -18,8 +28,9 @@ A full-stack Student Management System built with **ASP.NET Core Web API** (Dapp
 - **Real-time Search**: Quick student search with suggestions
 
 ### 🔐 Authentication & Security
-- Role-based access control (Admin/Student)
-- Session-based authentication with cookies
+- Role-based access control (Admin / Student)
+- **Session-based authentication using cookies (no JWT)**
+- Secure server-side session validation
 - Password-protected accounts
 - CORS configuration for secure frontend-backend communication
 
@@ -56,7 +67,9 @@ Students
 ├── Email
 ├── RollNumber
 ├── Class
+├── ProfilePhotoUrl
 └── IsActive
+
 
 Subjects
 ├── SubjectId (PK)
@@ -204,6 +217,14 @@ The API will run on `https://localhost:XXXX`
 1. Modify `style.css` for styling changes
 2. Update JavaScript files for new functionality
 3. Add new HTML pages as needed
+
+## 📁 Static Files & Uploads
+
+- Static files are served from `wwwroot`
+- Profile photos are stored in `wwwroot/uploads`
+- Uploaded images are **not committed to GitHub**
+- The `uploads` directory is tracked using a `.gitkeep` file
+
 
 ## 🔒 Security Features
 
