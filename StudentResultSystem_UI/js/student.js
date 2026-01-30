@@ -134,6 +134,7 @@ async function uploadProfilePhoto() {
         const data = await res.json();
 
         // Update photo with cache busting
+
         document.getElementById("profilePhoto").src =
             "https://localhost:7240" + data.profilePhotoUrl + "?t=" + Date.now();
 

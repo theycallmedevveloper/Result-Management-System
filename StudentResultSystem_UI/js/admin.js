@@ -405,6 +405,8 @@ async function addMultipleMarks() {
             }
         }
 
+
+
         alert("All marks added successfully");
 
         // Reset UI

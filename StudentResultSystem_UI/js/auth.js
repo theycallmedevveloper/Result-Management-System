@@ -49,6 +49,7 @@ async function login(event) {
             return;
         }
 
+
         // Redirect based on role
         if (profile.role === "Admin") {
             localStorage.setItem("role", "Admin");
