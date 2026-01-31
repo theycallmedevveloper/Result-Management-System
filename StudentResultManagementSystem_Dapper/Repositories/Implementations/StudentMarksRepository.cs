@@ -23,25 +23,28 @@ namespace StudentResultManagementSystem_Dapper.Repositories.Implementations
         {
             using var db = Connection;
 
+            // Check if marks already exist for this student and subject
             var exists = db.ExecuteScalar<int>(@"
-        SELECT COUNT(1)
-        FROM StudentMarks
-        WHERE StudentId = @StudentId AND SubjectId = @SubjectId",
+                SELECT COUNT(1)
+                FROM StudentMarks
+                WHERE StudentId = @StudentId AND SubjectId = @SubjectId",
                 new { StudentId = studentId, SubjectId = subjectId });
 
             if (exists > 0)
             {
+                // Update existing marks
                 db.Execute(@"
-            UPDATE StudentMarks
-            SET MarksObtained = @MarksObtained
-            WHERE StudentId = @StudentId AND SubjectId = @SubjectId",
+                    UPDATE StudentMarks
+                    SET MarksObtained = @MarksObtained
+                    WHERE StudentId = @StudentId AND SubjectId = @SubjectId",
                     new { StudentId = studentId, SubjectId = subjectId, MarksObtained = marks });
             }
             else
             {
+                // Insert new marks record
                 db.Execute(@"
-            INSERT INTO StudentMarks (StudentId, SubjectId, MarksObtained)
-            VALUES (@StudentId, @SubjectId, @MarksObtained)",
+                    INSERT INTO StudentMarks (StudentId, SubjectId, MarksObtained)
+                    VALUES (@StudentId, @SubjectId, @MarksObtained)",
                     new { StudentId = studentId, SubjectId = subjectId, MarksObtained = marks });
             }
         }
@@ -81,24 +84,21 @@ namespace StudentResultManagementSystem_Dapper.Repositories.Implementations
                 new { StudentId = studentId });
         }
 
-
         public IEnumerable<AdminResultDto> GetAllResults()
         {
             using var db = Connection;
 
             var sql = @"
-            SELECT
-                s.StudentId AS StudentId,
-                CONCAT(s.FirstName, ' ', s.LastName) AS StudentName,
-                sub.SubjectName AS SubjectName,
-                sm.MarksObtained AS MarksObtained
-            FROM StudentMarks sm
-            INNER JOIN Students s ON sm.StudentId = s.StudentId
-            INNER JOIN Subjects sub ON sm.SubjectId = sub.SubjectId
-            ";
+                SELECT
+                    s.StudentId AS StudentId,
+                    CONCAT(s.FirstName, ' ', s.LastName) AS StudentName,
+                    sub.SubjectName AS SubjectName,
+                    sm.MarksObtained AS MarksObtained
+                FROM StudentMarks sm
+                INNER JOIN Students s ON sm.StudentId = s.StudentId
+                INNER JOIN Subjects sub ON sm.SubjectId = sub.SubjectId";
 
             return db.Query<AdminResultDto>(sql);
         }
-
     }
 }

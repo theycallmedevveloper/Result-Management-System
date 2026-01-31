@@ -25,8 +25,7 @@ namespace StudentResultManagementSystem_Dapper.Repositories.Implementations
 
             return db.QueryFirstOrDefault<User>(
                 "SELECT * FROM Users WHERE UserId = @UserId",
-                new { UserId = userId }
-            );
+                new { UserId = userId });
         }
 
         public async Task<User?> Login(string username, string password)
@@ -42,8 +41,7 @@ namespace StudentResultManagementSystem_Dapper.Repositories.Implementations
 
             return await db.QueryFirstOrDefaultAsync<User>(
                 sql,
-                new { Username = username, Password = password }
-            );
+                new { Username = username, Password = password });
         }
     }
 }
