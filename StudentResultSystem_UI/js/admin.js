@@ -184,32 +184,67 @@ async function loadResults() {
             return;
         }
 
-        // Group results by student for better display
+        // Group results by student
         const studentMap = {};
         data.forEach(r => {
             if (!studentMap[r.studentName]) {
-                studentMap[r.studentName] = [];
+                studentMap[r.studentName] = {
+                    subjects: [],
+                    totalMarks: 0,
+                    isPassed: true
+                };
             }
-            studentMap[r.studentName].push({
+
+            const marks = parseInt(r.marksObtained);
+            studentMap[r.studentName].subjects.push({
                 subject: r.subjectName,
-                marks: r.marksObtained
+                marks: marks
             });
+
+            // Update totals
+            studentMap[r.studentName].totalMarks += marks;
+            if (marks < 35) {
+                studentMap[r.studentName].isPassed = false;
+            }
         });
 
-        // Render grouped results with rowspan for student names
+        // Calculate percentages
         Object.keys(studentMap).forEach(studentName => {
-            const subjects = studentMap[studentName];
+            const student = studentMap[studentName];
+            student.percentage = student.subjects.length > 0
+                ? ((student.totalMarks / (student.subjects.length * 100)) * 100).toFixed(2)
+                : 0;
+        });
 
-            // First row with student name and rowspan
+        // Render results
+        Object.keys(studentMap).forEach(studentName => {
+            const student = studentMap[studentName];
+            const subjects = student.subjects;
+
+            if (subjects.length === 0) return;
+
+            // First subject row with student name
             tbody.innerHTML += `
                 <tr>
-                    <td rowspan="${subjects.length}" class="align-middle"><strong>${studentName}</strong></td>
+                    <td rowspan="${subjects.length}" class="align-middle">
+                        <div><strong>${studentName}</strong></div>
+                        <div class="small mt-2">
+                            <div class="mb-1">
+                                Status: 
+                                <span class="badge ${student.isPassed ? 'bg-success' : 'bg-danger'}">
+                                    ${student.isPassed ? 'PASS' : 'FAIL'}
+                                </span>
+                            </div>
+                            <div class="mb-1">Total: <strong>${student.totalMarks}</strong></div>
+                            <div>Percentage: <strong>${student.percentage}%</strong></div>
+                        </div>
+                    </td>
                     <td>${subjects[0].subject}</td>
                     <td>${subjects[0].marks}</td>
                 </tr>
             `;
 
-            // Remaining subjects without student name
+            // Remaining subjects
             for (let i = 1; i < subjects.length; i++) {
                 tbody.innerHTML += `
                     <tr>
@@ -218,11 +253,19 @@ async function loadResults() {
                     </tr>
                 `;
             }
+
+            // Add empty row for spacing between students
+            tbody.innerHTML += `
+                <tr>
+                    <td colspan="3" style="height: 10px; background-color: #f8f9fa;"></td>
+                </tr>
+            `;
         });
     } catch (error) {
         alert("Error loading results: " + error.message);
     }
 }
+
 
 // Logout admin user
 async function logout() {
@@ -404,8 +447,6 @@ async function addMultipleMarks() {
                 throw new Error("Failed to add marks");
             }
         }
-
-
 
         alert("All marks added successfully");
 
