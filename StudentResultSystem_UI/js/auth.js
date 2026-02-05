@@ -34,7 +34,7 @@ async function login(event) {
         const profileRes = await fetch("https://localhost:7240/api/auth/profile", {
             credentials: "include"
         });
-
+        
         const profile = await profileRes.json();
 
         // Check if selected role matches actual role
@@ -48,7 +48,6 @@ async function login(event) {
             msgEl.classList.add("show");
             return;
         }
-
 
         // Redirect based on role
         if (profile.role === "Admin") {

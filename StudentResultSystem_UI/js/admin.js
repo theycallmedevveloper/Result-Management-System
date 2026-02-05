@@ -1,3 +1,4 @@
+let cachedResults = [];
 let selectedStudentId = null;
 
 // Add marks for a single subject
@@ -170,6 +171,9 @@ async function loadResults() {
         }
 
         const data = await res.json();
+        cachedResults = data;
+        renderResults(cachedResults);
+
         const tbody = document.getElementById("results");
         tbody.innerHTML = "";
 
@@ -281,12 +285,20 @@ async function logout() {
     }
 }
 
+const MAX_SUBJECTS = 6;
+
 // Add new subject-marks input row
 function addMoreSubjectRow() {
     const container = document.getElementById("marksContainer");
+    const currentRows = container.querySelectorAll(".mark-row").length;
+
+    if (currentRows >= MAX_SUBJECTS) {
+        alert("You can add a maximum of 6 subjects only.");
+        return;
+    }
 
     const row = document.createElement("div");
-    row.className = "row g-2 mark-row align-items-center";
+    row.className = "row g-2 mark-row align-items-end mb-2";
 
     row.innerHTML = `
         <div class="col-md-5">
@@ -294,14 +306,14 @@ function addMoreSubjectRow() {
                 <option value="">-- Select Subject --</option>
             </select>
         </div>
-        <div class="col-md-5">
-            <input type="number"
-                   class="form-control marksInput"
-                   placeholder="Enter marks">
+
+        <div class="col-md-4">
+            <input type="number" class="form-control marksInput" placeholder="Enter marks">
         </div>
-        <div class="col-md-1 d-flex align-items-center justify-content-center">
-            <button class="btn btn-danger btn-sm" onclick="removeSubjectRow(this)" style="width: 40px; height: 38px; padding: 2px">
-                Remove  
+
+        <div class="col-md-3">
+            <button class="btn btn-danger remove-btn" onclick="removeSubjectRow(this)">
+                Remove
             </button>
         </div>
     `;
@@ -312,6 +324,7 @@ function addMoreSubjectRow() {
     const newSelect = row.querySelector(".subjectSelect");
     loadSubjects(newSelect);
 }
+
 
 // Create a new student account
 async function createStudent() {
@@ -336,7 +349,7 @@ async function createStudent() {
         firstName: firstName,
         lastName: lastName,
         class: classVal,
-        rollNumber: String(rollNumber),  // Convert to string explicitly
+        rollNumber: String(rollNumber),
         email: email,
         password: password
     };
@@ -461,3 +474,126 @@ async function addMultipleMarks() {
         alert("X" + err.message);
     }
 }
+
+function renderResults(data) {
+    const tbody = document.getElementById("results");
+    tbody.innerHTML = "";
+
+    if (data.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="3" class="text-center text-muted">
+                    No results found
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    const studentMap = {};
+
+    data.forEach(r => {
+        if (!studentMap[r.studentName]) {
+            studentMap[r.studentName] = {
+                subjects: [],
+                totalMarks: 0,
+                isPassed: true
+            };
+        }
+
+        const marks = parseInt(r.marksObtained);
+        studentMap[r.studentName].subjects.push({
+            subject: r.subjectName,
+            marks: marks
+        });
+
+        studentMap[r.studentName].totalMarks += marks;
+        if (marks < 35) {
+            studentMap[r.studentName].isPassed = false;
+        }
+    });
+
+    Object.keys(studentMap).forEach(studentName => {
+        const student = studentMap[studentName];
+        const subjects = student.subjects;
+
+        student.percentage = ((student.totalMarks / (subjects.length * 100)) * 100).toFixed(2);
+
+        tbody.innerHTML += `
+            <tr>
+                <td rowspan="${subjects.length}" class="align-middle">
+                    <strong>${studentName}</strong>
+                    <div class="small mt-2">
+                        <div>Status:
+                            <span class="badge ${student.isPassed ? 'bg-success' : 'bg-danger'}">
+                                ${student.isPassed ? 'PASS' : 'FAIL'}
+                            </span>
+                        </div>
+                        <div>Total: <strong>${student.totalMarks}</strong></div>
+                        <div>Percentage: <strong>${student.percentage}%</strong></div>
+                    </div>
+                </td>
+                <td>${subjects[0].subject}</td>
+                <td>${subjects[0].marks}</td>
+            </tr>
+        `;
+
+        for (let i = 1; i < subjects.length; i++) {
+            tbody.innerHTML += `
+                <tr>
+                    <td>${subjects[i].subject}</td>
+                    <td>${subjects[i].marks}</td>
+                </tr>
+            `;
+        }
+
+        tbody.innerHTML += `
+            <tr>
+                <td colspan="3" style="height:10px;background:#f8f9fa"></td>
+            </tr>
+        `;
+    });
+}
+
+function applyResultFilter() {
+    const filter = document.getElementById("resultFilter").value;
+
+    if (filter === "all") {
+        renderResults(cachedResults);
+        return;
+    }
+
+    // Group by student first
+    const studentMap = {};
+
+    cachedResults.forEach(r => {
+        if (!studentMap[r.studentName]) {
+            studentMap[r.studentName] = {
+                records: [],
+                isPassed: true
+            };
+        }
+
+        const marks = parseInt(r.marksObtained);
+        if (marks < 35) {
+            studentMap[r.studentName].isPassed = false;
+        }
+
+        studentMap[r.studentName].records.push(r);
+    });
+
+    // Filter students
+    const filteredResults = [];
+
+    Object.values(studentMap).forEach(student => {
+        if (
+            (filter === "pass" && student.isPassed) ||
+            (filter === "fail" && !student.isPassed)
+        ) {
+            filteredResults.push(...student.records);
+        }
+    });
+
+    renderResults(filteredResults);
+}
+
