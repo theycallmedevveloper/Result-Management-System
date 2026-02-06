@@ -87,28 +87,64 @@ StudentMarks
 ## 📂 Project Structure
 
 ```
-Result-Management-System1/
-├── DataBase/                    # SQL scripts
-│   └── StudentResult.sql
-├── StudentResultManagementSystem_Dapper/  # Backend (.NET)
-│   ├── Controllers/            # API endpoints
-│   ├── DTOs/                   # Data Transfer Objects
-│   ├── Models/                 # Entity models
-│   ├── Repositories/           # Data access layer
-│   │   ├── Implementations/
-│   │   └── Interfaces/
-│   ├── appsettings.json        # Configuration
-│   └── Program.cs             # Startup configuration
-└── StudentResultSystem_UI/    # Frontend
-    ├── css/
-    │   └── style.css
-    ├── js/
-    │   ├── admin.js
-    │   ├── auth.js
-    │   └── student.js
-    ├── admin.html
-    ├── index.html
-    └── student.html
+StudentResultManagementSystem
+│
+├── StudentResultManagementSystem_Dapper
+│   │
+│   ├── Controllers
+│   │   ├── AuthController.cs
+│   │   ├── StudentsController.cs
+│   │   ├── SubjectsController.cs
+│   │   └── MarksController.cs
+│   │
+│   ├── DTOs
+│   │   ├── StudentDto.cs
+│   │   ├── SubjectDto.cs
+│   │   ├── StudentMarksDto.cs
+│   │   ├── StudentResultDto.cs
+│   │   └── AdminDashboardStatsDto.cs
+│   │
+│   ├── Models
+│   │   ├── Student.cs
+│   │   ├── Subject.cs
+│   │   ├── StudentMarks.cs
+│   │   └── Admin.cs
+│   │
+│   ├── Repositories
+│   │   ├── Interfaces
+│   │   │   ├── IStudentRepository.cs
+│   │   │   ├── ISubjectRepository.cs
+│   │   │   └── IMarksRepository.cs
+│   │   │
+│   │   └── Implementations
+│   │       ├── StudentRepository.cs
+│   │       ├── SubjectRepository.cs
+│   │       └── MarksRepository.cs
+│   │
+│   ├── Database
+│   │   └── StudentResult.sql
+│   │
+│   ├── Properties
+│   │   └── launchSettings.json
+│   │
+│   ├── appsettings.json
+│   ├── Program.cs
+│   └── StudentResultManagementSystem_Dapper.csproj
+│
+├── Frontend
+│   │
+│   ├── admin.html
+│   ├── student.html
+│   │
+│   ├── css
+│   │   └── style.css
+│   │
+│   └── js
+│       ├── admin.js
+│       └── student.js
+│
+└── README.md
+
 ```
 
 ## 🚀 Getting Started
