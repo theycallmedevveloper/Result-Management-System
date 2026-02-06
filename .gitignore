@@ -1,0 +1,42 @@
+## Ignore Visual Studio files
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+## Build results
+bin/
+obj/
+
+## ASP.NET Core
+appsettings.Development.json
+appsettings.Production.json
+
+## Logs
+*.log
+
+## OS files
+.DS_Store
+Thumbs.db
+
+## Rider
+.idea/
+
+## Environment variables
+.env
+
+## Publish output
+publish/
+
+## Node (if frontend ever added)
+node_modules/
+
+# Ignore uploaded profile images
+wwwroot/uploads/*
+
+.angular/
+dist/
+
+.vscode/
+coverage/

@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Admin Dashboard - Student Management</title>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+    <div class="admin-wrapper">
+
+        <div class="sidebar">
+            <!-- Admin Profile -->
+            <div class="admin-profile mb-4 text-center">
+                <img src="https://via.placeholder.com/80" class="rounded-circle mb-2" width="80" height="80" />
+                <h6 id="adminName" class="mb-0">Admin</h6>
+                <small id="adminId" style="color: #ffff; font-weight: 300;">ID: --</small>
+            </div>
+
+            <hr class="text-secondary">
+
+            <button class="btn btn-outline-light w-100 mb-3" data-bs-toggle="modal"
+                data-bs-target="#createStudentModal">
+                Create Student
+            </button>
+
+            <button class="btn btn-outline-danger w-100" onclick="logout()">
+                Logout
+            </button>
+        </div>
+
+
+        <!-- Main Content -->
+        <div class="content">
+
+            <!-- Add Marks -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="mb-4">Add Student Marks</h5>
+
+                    <div class="mb-3 suggestion-box">
+                        <label class="form-label">Search Student</label>
+                        <input id="studentSearch" class="form-control" placeholder="Name / Roll No / ID"
+                            onkeyup="suggestStudents()">
+                        <ul id="suggestions" class="list-group mt-2"></ul>
+                    </div>
+
+                    <div id="selectedStudent" class="alert alert-info py-2 px-3 mb-3" style="display:none;"></div>
+
+                    <div id="marksContainer">
+                        <div class="row g-3 align-items-end mark-row mb-2 flex-column flex-md-row">
+                            <div class="col-md-5">
+                                <label class="form-label">Subject</label>
+                                <select class="form-control subjectSelect" onchange="handleSubjectChange()">
+                                    <option value="">-- Select Subject --</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="form-label">Marks</label>
+                                <input type="number" class="form-control marksInput" placeholder="Enter marks">
+                            </div>
+
+                            <div class="col-md-3">
+                                <label class="form-label">Action</label>
+                                <button class="btn btn-danger remove-btn" onclick="removeSubjectRow(this)">
+                                    Remove
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2 mt-3">
+                        <button class="btn btn-outline-secondary" onclick="addMoreSubjectRow()">
+                            Add Subject
+                        </button>
+
+                        <button class="btn btn-success ms-auto" onclick="addMultipleMarks()">
+                            Submit All Marks
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results -->
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="mb-3">All Student Results</h5>
+
+                    <div class="d-flex gap-2 mb-3">
+                        <button class="btn btn-primary" onclick="loadResults()">
+                            Load Results
+                        </button>
+
+                        <select id="resultFilter" class="form-select w-auto" onchange="applyResultFilter()">
+                            <option value="all">All</option>
+                            <option value="pass">Pass</option>
+                            <option value="fail">Fail</option>
+                        </select>
+                    </div>
+
+
+                    <div class="table-responsive">
+                        <table class="table table-bordered align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="width:25%">Student</th>
+                                    <th>Subject</th>
+                                    <th style="width:15%">Marks</th>
+                                </tr>
+                            </thead>
+                            <tbody id="results">
+                                <tr>
+                                    <td colspan="3" class="text-center text-muted">
+                                        Click “Load Results”
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Create Student Modal -->
+    <div class="modal fade" id="createStudentModal">
+        <div class="modal-dialog">
+            <div class="modal-content rounded-4">
+                <div class="modal-header">
+                    <h5>Create New Student</h5>
+                    <button class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+                    <input id="firstName" class="form-control mb-2" placeholder="First Name">
+                    <input id="lastName" class="form-control mb-2" placeholder="Last Name">
+                    <input id="class" class="form-control mb-2" placeholder="Class (10-A)">
+                    <input id="rollNumber" class="form-control mb-2" placeholder="Roll Number">
+                    <input id="email" class="form-control mb-2" placeholder="Email">
+                    <input id="password" class="form-control mb-2" placeholder="Password">
+
+                    <div id="createMsg" class="alert mt-2" style="display:none;"></div>
+                </div>
+
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button class="btn btn-primary" onclick="createStudent()">Create</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/admin.js"></script>
+
+</body>
+
+</html>
